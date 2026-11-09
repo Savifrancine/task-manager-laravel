@@ -1,0 +1,97 @@
+{
+  "info": {
+    "name": "Task Manager API (Laravel)",
+    "description": "Collection de démonstration de l'API REST Task Manager. Lancer `php artisan serve` puis exécuter les requêtes dans l'ordre.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://127.0.0.1:8000/api" }
+  ],
+  "item": [
+    {
+      "name": "1. Créer une tâche (201)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": "{{base_url}}/tasks",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Apprendre Laravel\",\n  \"description\": \"Créer ma première API REST\",\n  \"completed\": false\n}"
+        }
+      }
+    },
+    {
+      "name": "2. Lister les tâches (200)",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Accept", "value": "application/json" }],
+        "url": "{{base_url}}/tasks"
+      }
+    },
+    {
+      "name": "3. Afficher une tâche (200)",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Accept", "value": "application/json" }],
+        "url": "{{base_url}}/tasks/1"
+      }
+    },
+    {
+      "name": "4. Modifier une tâche (200)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": "{{base_url}}/tasks/1",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Maîtriser Laravel\"\n}"
+        }
+      }
+    },
+    {
+      "name": "5. Marquer comme terminée (200)",
+      "request": {
+        "method": "PATCH",
+        "header": [{ "key": "Accept", "value": "application/json" }],
+        "url": "{{base_url}}/tasks/1/complete"
+      }
+    },
+    {
+      "name": "6. Erreur de validation - titre manquant (422)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": "{{base_url}}/tasks",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"description\": \"Une tâche sans titre\"\n}"
+        }
+      }
+    },
+    {
+      "name": "7. Tâche introuvable (404)",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Accept", "value": "application/json" }],
+        "url": "{{base_url}}/tasks/999"
+      }
+    },
+    {
+      "name": "8. Supprimer une tâche (200)",
+      "request": {
+        "method": "DELETE",
+        "header": [{ "key": "Accept", "value": "application/json" }],
+        "url": "{{base_url}}/tasks/1"
+      }
+    }
+  ]
+}
