@@ -4,6 +4,16 @@
 
 API permettant de créer, lister, consulter, modifier, terminer et supprimer des tâches. Le code est commenté en français pour servir de support d'apprentissage.
 
+## Aperçu
+
+| Création réussie (201) | Données invalides (422) |
+|---|---|
+| ![Réponse 201](captures/carrousel/201-res.png) | ![Réponse 422](captures/carrousel/422-res.png) |
+
+![8 tests automatisés réussis](captures/carrousel/tests.png)
+
+📄 Le carrousel explicatif complet : [`carrousel-task-manager.pdf`](captures/carrousel/carrousel-task-manager.pdf)
+
 ## Technologies
 
 | Technologie | Utilité |

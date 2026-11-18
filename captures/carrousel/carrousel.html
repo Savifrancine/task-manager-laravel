@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Carrousel Task Manager</title>
+<style>
+  @page { size: 1080px 1350px; margin: 0; }
+  :root {
+    --bg: #0d1117;
+    --card: #161b22;
+    --line: #2a313c;
+    --text: #e6edf3;
+    --muted: #9da7b3;
+    --red: #ff2d20;
+    --green: #3fb950;
+    --blue: #58a6ff;
+    --yellow: #f2cc60;
+    --purple: #d2a8ff;
+    --orange: #ffa657;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--bg); }
+  body {
+    font-family: "Segoe UI", system-ui, sans-serif;
+    color: var(--text);
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+  .slide {
+    width: 1080px; height: 1350px;
+    padding: 90px 80px 120px;
+    position: relative; overflow: hidden;
+    display: flex; flex-direction: column; gap: 36px;
+    page-break-after: always; break-after: page;
+    background:
+      radial-gradient(900px 500px at 110% -10%, rgba(255,45,32,.16), transparent 60%),
+      var(--bg);
+  }
+  .slide:last-child { page-break-after: auto; break-after: auto; }
+
+  /* Pied de page */
+  .foot {
+    position: absolute; left: 80px; right: 80px; bottom: 50px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 24px; color: var(--muted);
+  }
+  .foot b { color: var(--text); font-weight: 600; }
+  .foot .next { color: var(--red); font-weight: 700; }
+
+  /* Typo */
+  .kicker { font-size: 24px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--red); }
+  h1 { font-size: 92px; line-height: 1.02; font-weight: 800; letter-spacing: -.02em; }
+  h2 { font-size: 62px; line-height: 1.08; font-weight: 800; letter-spacing: -.015em; }
+  .lead { font-size: 34px; line-height: 1.4; color: var(--muted); }
+  .lead b, p b { color: var(--text); }
+  p { font-size: 30px; line-height: 1.45; color: var(--muted); }
+  .red { color: var(--red); } .green { color: var(--green); }
+
+  /* Composants */
+  .card { background: var(--card); border: 2px solid var(--line); border-radius: 24px; padding: 32px 36px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 14px; }
+  .chip { font-size: 26px; font-weight: 600; padding: 12px 24px; border-radius: 999px; border: 2px solid var(--line); background: var(--card); }
+  .tip { font-size: 28px; line-height: 1.4; color: var(--text); border-left: 6px solid var(--red); padding: 18px 28px; background: rgba(255,45,32,.08); border-radius: 0 16px 16px 0; }
+  .tip.ok { border-color: var(--green); background: rgba(63,185,80,.08); }
+
+  /* Code */
+  pre {
+    font-family: "Cascadia Code", "Cascadia Mono", Consolas, monospace;
+    font-size: 26px; line-height: 1.5;
+    background: #010409; border: 2px solid var(--line); border-radius: 20px;
+    padding: 28px 32px; white-space: pre; color: var(--text);
+  }
+  /* Pas de ligatures : "->" et "=>" doivent rester tels qu'on les tape */
+  pre, code, .verb, .msg { font-variant-ligatures: none; font-feature-settings: "calt" 0, "liga" 0; }
+  pre .file { display: block; font-size: 20px; color: var(--muted); margin-bottom: 12px; font-family: "Segoe UI", sans-serif; }
+  .k { color: #ff7b72; } .s { color: #a5d6ff; } .f { color: var(--purple); }
+  .c { color: #8b949e; } .v { color: var(--orange); } .n { color: #79c0ff; }
+
+  /* Captures */
+  .shot { width: 100%; border-radius: 18px; border: 2px solid var(--line); display: block; }
+  .label { font-size: 22px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: -20px; }
+
+  /* Verbes HTTP */
+  .verb { display: inline-block; min-width: 150px; font-family: "Cascadia Code", Consolas, monospace; font-weight: 700; font-size: 26px; }
+  .GET { color: var(--green); } .POST { color: var(--yellow); } .PUT { color: var(--blue); }
+  .PATCH { color: var(--purple); } .DELETE { color: var(--red); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 27px; }
+  td { padding: 17px 20px; border-bottom: 2px solid var(--line); }
+  td code { font-family: "Cascadia Code", Consolas, monospace; font-size: 25px; }
+  td:last-child { color: var(--muted); }
+
+  /* Schéma API */
+  .flow { display: flex; align-items: center; gap: 16px; }
+  .node { flex: 1; text-align: center; padding: 30px 14px; border-radius: 22px; border: 2px solid var(--line); background: var(--card); }
+  .node .ico { font-size: 56px; }
+  .node .t { font-size: 30px; font-weight: 700; margin-top: 8px; }
+  .node .d { font-size: 22px; color: var(--muted); margin-top: 4px; }
+  .node.hl { border-color: var(--red); }
+  .arrow { font-size: 44px; color: var(--muted); }
+  .msg { display: flex; justify-content: space-between; gap: 20px; font-family: "Cascadia Code", Consolas, monospace; font-size: 24px; }
+  .msg div { flex: 1; padding: 18px 22px; border-radius: 16px; background: #010409; border: 2px solid var(--line); }
+
+  /* Étapes MVC */
+  .steps { display: flex; flex-direction: column; gap: 18px; }
+  .step { display: flex; align-items: center; gap: 28px; }
+  .num { flex: none; width: 72px; height: 72px; border-radius: 50%; background: var(--red); color: #fff; font-size: 34px; font-weight: 800; display: grid; place-items: center; }
+  .step .card { flex: 1; padding: 22px 30px; }
+  .step .t { font-size: 32px; font-weight: 700; }
+  .step .t code { font-family: "Cascadia Code", Consolas, monospace; font-size: 24px; color: var(--muted); font-weight: 400; margin-left: 10px; }
+  .step .d { font-size: 25px; color: var(--muted); margin-top: 4px; }
+  .down { margin-left: 22px; font-size: 30px; color: var(--muted); line-height: .6; }
+
+  .lessons { display: flex; flex-direction: column; gap: 30px; margin-top: 20px; }
+  .lesson { display: flex; gap: 30px; align-items: center; }
+  .lesson > div:last-child { flex: 1; }
+  .lesson .num { width: 88px; height: 88px; font-size: 42px; }
+  .lesson .t { font-size: 40px; font-weight: 700; line-height: 1.2; }
+  .lesson .d { font-size: 30px; color: var(--muted); margin-top: 8px; line-height: 1.4; }
+  .cta { display: flex; flex-direction: column; gap: 14px; font-size: 30px; }
+  .spacer { flex: 1; }
+</style>
+</head>
+<body>
+
+<!-- 1. COUVERTURE -->
+<section class="slide">
+  <div class="spacer"></div>
+  <div class="kicker">Démonstration #01 · De la théorie à la pratique</div>
+  <h1>Construire une <span class="red">API REST</span> avec Laravel</h1>
+  <p class="lead">Une API de gestion de tâches, construite <b>en 5 étapes</b> et expliquée simplement.</p>
+  <div class="chips">
+    <span class="chip">Laravel 13</span><span class="chip">PHP 8.4</span><span class="chip">MySQL</span>
+    <span class="chip">Eloquent</span><span class="chip">Postman</span><span class="chip">PHPUnit</span>
+  </div>
+  <div class="spacer"></div>
+  <pre><span class="c"># Ce que fait l'API</span>
+<span class="GET">GET</span>     /api/tasks              <span class="c">→ lister</span>
+<span class="POST">POST</span>    /api/tasks              <span class="c">→ créer</span>
+<span class="PATCH">PATCH</span>   /api/tasks/1/complete   <span class="c">→ terminer</span>
+<span class="DELETE">DELETE</span>  /api/tasks/1            <span class="c">→ supprimer</span></pre>
+  <div class="foot"><span><b>Francine Savi</b> · Task Manager</span><span class="next">Swipe →</span></div>
+</section>
+
+<!-- 2. C'EST QUOI UNE API REST -->
+<section class="slide">
+  <div class="kicker">Les bases</div>
+  <h2>C'est quoi une API REST ?</h2>
+  <p class="lead">Un serveur qui ne renvoie pas des pages web, mais des <b>données</b> (au format JSON), que n'importe quelle application peut utiliser.</p>
+  <div class="flow">
+    <div class="node"><div class="ico">📱</div><div class="t">Client</div><div class="d">Postman, appli, site</div></div>
+    <div class="arrow">⇄</div>
+    <div class="node hl"><div class="ico">⚙️</div><div class="t">API Laravel</div><div class="d">valide et traite</div></div>
+    <div class="arrow">⇄</div>
+    <div class="node"><div class="ico">🗄️</div><div class="t">MySQL</div><div class="d">stocke les tâches</div></div>
+  </div>
+  <div class="msg">
+    <div><span class="c">Requête →</span><br><span class="POST">POST</span> /api/tasks<br>{ <span class="s">"title"</span>: <span class="s">"…"</span> }</div>
+    <div><span class="c">← Réponse</span><br><span class="green">201 Created</span><br>{ <span class="s">"id"</span>: <span class="n">1</span>, … }</div>
+  </div>
+  <table>
+    <tr><td><span class="verb GET">GET</span></td><td>Lire</td></tr>
+    <tr><td><span class="verb POST">POST</span></td><td>Créer</td></tr>
+    <tr><td><span class="verb PUT">PUT</span></td><td>Modifier</td></tr>
+    <tr><td><span class="verb DELETE">DELETE</span></td><td>Supprimer</td></tr>
+  </table>
+  <div class="tip">Le <b>verbe</b> dit <b>quoi</b> faire, l'<b>URL</b> dit <b>sur quoi</b>.</div>
+  <div class="foot"><span><b>Francine Savi</b> · Task Manager</span><span>2 / 10</span></div>
+</section>
+
+<!-- 3. MVC -->
+<section class="slide">
+  <div class="kicker">L'architecture</div>
+  <h2>Qui fait quoi ? Le chemin d'une requête</h2>
+  <p class="lead">Laravel suit le modèle <b>MVC</b> : chaque fichier a un seul rôle. Le code reste clair et facile à faire évoluer.</p>
+  <div class="steps">
+    <div class="step"><div class="num">1</div><div class="card"><div class="t">La route <code>routes/api.php</code></div><div class="d">Aiguille la requête vers la bonne méthode.</div></div></div>
+    <div class="down">↓</div>
+    <div class="step"><div class="num">2</div><div class="card"><div class="t">Le contrôleur <code>TaskController</code></div><div class="d">Valide les données et décide quoi faire.</div></div></div>
+    <div class="down">↓</div>
+    <div class="step"><div class="num">3</div><div class="card"><div class="t">Le modèle <code>Task</code></div><div class="d">Lit et écrit dans la base, sans écrire de SQL.</div></div></div>
+    <div class="down">↓</div>
+    <div class="step"><div class="num">4</div><div class="card"><div class="t">La base <code>MySQL</code></div><div class="d">Stocke les tâches dans la table <b>tasks</b>.</div></div></div>
+  </div>
+  <div class="tip">Et le <b>V</b> de MVC (la Vue) ? Dans une API, c'est la <b>réponse JSON</b>.</div>
+  <div class="foot"><span><b>Francine Savi</b> · Task Manager</span><span>3 / 10</span></div>
+</section>
+
+<!-- 4. MIGRATION + MODELE -->
+<section class="slide">
+  <div class="kicker">Étapes 1 et 2</div>
+  <h2>La table et le modèle</h2>
+  <p>La <b>migration</b> décrit la table en PHP. Une commande, <b>php artisan migrate</b>, la crée dans MySQL.</p>
+  <pre><span class="file">database/migrations/…_create_tasks_table.php</span><span class="v">$table</span>-&gt;<span class="f">id</span>();
+<span class="v">$table</span>-&gt;<span class="f">string</span>(<span class="s">'title'</span>);
+<span class="v">$table</span>-&gt;<span class="f">text</span>(<span class="s">'description'</span>)-&gt;<span class="f">nullable</span>();
+<span class="v">$table</span>-&gt;<span class="f">boolean</span>(<span class="s">'completed'</span>)-&gt;<span class="f">default</span>(<span class="k">false</span>);
+<span class="v">$table</span>-&gt;<span class="f">timestamps</span>();</pre>
+  <div class="label">Le résultat dans MySQL</div>
+  <img class="shot" src="db.png" alt="Table tasks dans phpMyAdmin">
+  <pre><span class="file">app/Models/Task.php</span><span class="c">// MySQL stocke 0 ou 1 → l'API renvoie true ou false</span>
+<span class="k">return</span> [<span class="s">'completed'</span> =&gt; <span class="s">'boolean'</span>];</pre>
+  <div class="foot"><span><b>Francine Savi</b> · Task Manager</span><span>4 / 10</span></div>
+</section>
+
+<!-- 5. CONTROLEUR -->
+<section class="slide">
+  <div class="kicker">Étape 3</div>
+  <h2>Le contrôleur : créer une tâche</h2>
+  <p>Chaque action de l'API est une méthode. Celle-ci suit <b>3 temps</b>, toujours dans le même ordre.</p>
+  <pre><span class="file">app/Http/Controllers/Api/TaskController.php</span><span class="k">public function</span> <span class="f">store</span>(<span class="n">Request</span> <span class="v">$request</span>)
+{
+    <span class="c">// ① Valider : on ne fait jamais confiance</span>
+    <span class="c">//   aux données reçues</span>
+    <span class="v">$data</span> = <span class="v">$request</span>-&gt;<span class="f">validate</span>([
+        <span class="s">'title'</span>       =&gt; <span class="s">'required|string|max:255'</span>,
+        <span class="s">'description'</span> =&gt; <span class="s">'nullable|string'</span>,
+        <span class="s">'completed'</span>   =&gt; <span class="s">'boolean'</span>,
+    ]);
+
+    <span class="c">// ② Enregistrer en base</span>
+    <span class="v">$task</span> = <span class="n">Task</span>::<span class="f">create</span>(<span class="v">$data</span>);
+
+    <span class="c">// ③ Répondre : 201 = "créé"</span>
+    <span class="k">return</span> <span class="f">response</span>()-&gt;<span class="f">json</span>(<span class="v">$task</span>, <span class="n">201</span>);
+}</pre>
+  <div class="tip">Si la validation échoue, Laravel s'arrête à ① et répond <b>422</b> tout seul : rien n'est enregistré.</div>
+  <div class="foot"><span><b>Francine Savi</b> · Task Manager</span><span>5 / 10</span></div>
+</section>
+
+<!-- 6. ROUTES -->
+<section class="slide">
+  <div class="kicker">Étape 4</div>
+  <h2>Les routes : 1 ligne, 5 routes</h2>
+  <pre><span class="file">routes/api.php</span><span class="n">Route</span>::<span class="f">apiResource</span>(<span class="s">'tasks'</span>, <span class="n">TaskController</span>::<span class="k">class</span>);
+
+<span class="c">// + une route dédiée</span>
+<span class="n">Route</span>::<span class="f">patch</span>(<span class="s">'tasks/{task}/complete'</span>, …);</pre>
+  <p><b>apiResource</b> génère automatiquement toutes les routes CRUD (Create, Read, Update, Delete) :</p>
+  <table>
+    <tr><td><span class="verb GET">GET</span></td><td><code>/api/tasks</code></td><td>Lister</td></tr>
+    <tr><td><span class="verb POST">POST</span></td><td><code>/api/tasks</code></td><td>Créer</td></tr>
+    <tr><td><span class="verb GET">GET</span></td><td><code>/api/tasks/{id}</code></td><td>Afficher</td></tr>
+    <tr><td><span class="verb PUT">PUT</span></td><td><code>/api/tasks/{id}</code></td><td>Modifier</td></tr>
+    <tr><td><span class="verb DELETE">DELETE</span></td><td><code>/api/tasks/{id}</code></td><td>Supprimer</td></tr>
+    <tr><td><span class="verb PATCH">PATCH</span></td><td><code>/api/tasks/{id}/complete</code></td><td>Terminer</td></tr>
+  </table>
+  <div class="tip">Bonus : si la tâche <b>{id}</b> n'existe pas, Laravel répond <b>404</b> automatiquement.</div>
+  <div class="foot"><span><b>Francine Savi</b> · Task Manager</span><span>6 / 10</span></div>
+</section>
+
+<!-- 7. POSTMAN 201 -->
+<section class="slide">
+  <div class="kicker">Étape 5 · Tester avec Postman</div>
+  <h2><span class="green">✓</span> Créer une tâche</h2>
+  <div class="label">J'envoie</div>
+  <img class="shot" src="201-req.png" alt="Requête POST dans Postman">
+  <div class="label">L'API répond</div>
+  <img class="shot" src="201-res.png" alt="Réponse 201 Created">
+  <div class="tip ok"><b>201 Created</b> : la tâche est enregistrée. L'API renvoie son <b>id</b> et ses dates de création, ajoutés automatiquement.</div>
+  <div class="foot"><span><b>Francine Savi</b> · Task Manager</span><span>7 / 10</span></div>
+</section>
+
+<!-- 8. POSTMAN 422 -->
+<section class="slide">
+  <div class="kicker">Étape 5 · Tester les erreurs</div>
+  <h2><span class="red">✗</span> Et sans titre ?</h2>
+  <div class="label">J'envoie une tâche sans "title"</div>
+  <img class="shot" src="422-req.png" alt="Requête POST sans titre">
+  <div class="label">L'API refuse</div>
+  <img class="shot" src="422-res.png" alt="Réponse 422">
+  <div class="tip"><b>422</b> : les données sont invalides. L'API refuse <b>et explique pourquoi</b>. Une erreur bien gérée compte autant qu'un succès.</div>
+  <div class="foot"><span><b>Francine Savi</b> · Task Manager</span><span>8 / 10</span></div>
+</section>
+
+<!-- 9. TESTS AUTOMATISES -->
+<section class="slide">
+  <div class="kicker">Bonus</div>
+  <h2>8 tests automatisés</h2>
+  <p>Tester à la main dans Postman, c'est bien. Mais après chaque modification du code, il faudrait tout refaire…</p>
+  <p>Avec <b>PHPUnit</b>, une seule commande vérifie toute l'API en quelques secondes :</p>
+  <img class="shot" src="tests.png" alt="php artisan test : 8 tests réussis">
+  <pre><span class="c">// Un test = un scénario vérifié automatiquement</span>
+<span class="v">$this</span>-&gt;<span class="f">postJson</span>(<span class="s">'/api/tasks'</span>, [<span class="s">'description'</span> =&gt; <span class="s">'…'</span>])
+     -&gt;<span class="f">assertUnprocessable</span>(); <span class="c">// 422 attendu</span></pre>
+  <div class="tip ok">Si je casse quelque chose demain, <b>les tests me le diront avant mes utilisateurs.</b></div>
+  <div class="foot"><span><b>Francine Savi</b> · Task Manager</span><span>9 / 10</span></div>
+</section>
+
+<!-- 10. CONCLUSION -->
+<section class="slide">
+  <div class="kicker">À retenir</div>
+  <h2>3 leçons de ce projet</h2>
+  <div class="lessons">
+    <div class="lesson"><div class="num">1</div><div><div class="t">Les codes HTTP sont un langage commun</div><div class="d">200 OK · 201 créé · 422 invalide · 404 introuvable</div></div></div>
+    <div class="lesson"><div class="num">2</div><div><div class="t">On valide toujours avant d'enregistrer</div><div class="d">Les données reçues ne sont jamais fiables par défaut.</div></div></div>
+    <div class="lesson"><div class="num">3</div><div><div class="t">Une erreur claire vaut un succès</div><div class="d">Un bon message d'erreur aide celui qui utilise l'API.</div></div></div>
+  </div>
+  <div class="spacer"></div>
+  <div class="tip">Ce n'est pas seulement du code : c'est apprendre à construire une application <b>structurée, testée et maintenable</b>.</div>
+  <div class="card cta">
+    <div>🔗 <b>Le code complet est sur GitHub</b> (lien en commentaire)</div>
+    <div>💬 <b>Démo #02 :</b> authentification, priorités ou dates limites ? <span style="color:var(--muted)">Vote en commentaire !</span></div>
+    <div>♻️ <b>Partage</b> si ça peut aider quelqu'un qui apprend</div>
+  </div>
+  <div class="foot"><span><b>Francine Savi</b> · Task Manager</span><span>10 / 10</span></div>
+</section>
+
+<script>
+  // Aperçu d'une seule diapositive : carrousel.html#3
+  var n = parseInt(location.hash.slice(1), 10);
+  if (n) document.querySelectorAll('.slide').forEach(function (s, i) {
+    if (i !== n - 1) s.style.display = 'none';
+  });
+</script>
+</body>
+</html>
