@@ -1,0 +1,35 @@
+# Intégration continue : à chaque push ou pull request,
+# GitHub installe le projet sur une machine vierge et lance les tests.
+# Le résultat (vert ou rouge) s'affiche sous forme de badge dans le README.
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v4
+
+      - name: Installer PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, pdo_sqlite, sqlite3
+          coverage: none
+
+      - name: Installer les dépendances
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Préparer l'environnement
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Lancer les tests
+        run: php artisan test

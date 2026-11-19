@@ -49,7 +49,9 @@ class TaskApiTest extends TestCase
     {
         $this->postJson('/api/tasks', ['description' => 'Sans titre'])
             ->assertUnprocessable()            // 422
-            ->assertJsonValidationErrors('title');
+            ->assertJsonValidationErrors([
+                'title' => 'Le champ titre est obligatoire.', // message en français
+            ]);
 
         $this->assertDatabaseCount('tasks', 0); // rien n'a été enregistré
     }

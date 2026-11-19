@@ -1,5 +1,7 @@
 # Task Manager — API REST avec Laravel
 
+[![Tests](https://github.com/Savifrancine/task-manager-laravel/actions/workflows/tests.yml/badge.svg)](https://github.com/Savifrancine/task-manager-laravel/actions/workflows/tests.yml)
+
 > **Démonstration #01** de ma série « De la théorie à la pratique » : construire pas à pas une API REST de gestion de tâches.
 
 API permettant de créer, lister, consulter, modifier, terminer et supprimer des tâches. Le code est commenté en français pour servir de support d'apprentissage.
@@ -35,7 +37,14 @@ API permettant de créer, lister, consulter, modifier, terminer et supprimer des
 | `PATCH` | `/api/tasks/{id}/complete` | Marquer comme terminée | 200 |
 | `DELETE` | `/api/tasks/{id}` | Supprimer une tâche | 200 |
 
-**Erreurs gérées :** `422` si les données sont invalides (ex. titre manquant), `404` si la tâche n'existe pas. L'API répond toujours en JSON.
+**Erreurs gérées :** `422` si les données sont invalides (ex. titre manquant), `404` si la tâche n'existe pas. L'API répond toujours en JSON, avec des messages en français :
+
+```json
+{
+  "message": "Le champ titre est obligatoire.",
+  "errors": { "title": ["Le champ titre est obligatoire."] }
+}
+```
 
 ### Exemple — créer une tâche
 
@@ -101,6 +110,8 @@ L'API est disponible sur `http://127.0.0.1:8000/api/tasks`.
 ```bash
 php artisan test
 ```
+
+**Intégration continue :** à chaque `push`, GitHub Actions relance automatiquement les tests ([`.github/workflows/tests.yml`](.github/workflows/tests.yml)). Le badge en haut de cette page indique le résultat.
 
 **Postman :** importer [`postman/task-manager.postman_collection.json`](postman/task-manager.postman_collection.json), qui contient les 8 requêtes prêtes à l'emploi (succès et erreurs).
 
