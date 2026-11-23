@@ -1,97 +1,188 @@
 {
   "info": {
     "name": "Task Manager API (Laravel)",
-    "description": "Collection de démonstration de l'API REST Task Manager. Lancer `php artisan serve` puis exécuter les requêtes dans l'ordre.",
+    "description": "Démo #02 — API REST avec authentification Sanctum.\n\n1. Lancer `php artisan migrate:fresh --seed` puis `php artisan serve`.\n2. Exécuter « Se connecter » : le jeton est enregistré automatiquement dans la variable {{token}}.\n3. Toutes les autres requêtes l'envoient dans le header Authorization: Bearer {{token}}.\n\nComptes de démo (mot de passe password123) : francine@example.com et alex@example.com.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+  },
   "variable": [
-    { "key": "base_url", "value": "http://127.0.0.1:8000/api" }
+    { "key": "base_url", "value": "http://127.0.0.1:8000/api" },
+    { "key": "token", "value": "" }
   ],
   "item": [
     {
-      "name": "1. Créer une tâche (201)",
-      "request": {
-        "method": "POST",
-        "header": [
-          { "key": "Accept", "value": "application/json" },
-          { "key": "Content-Type", "value": "application/json" }
-        ],
-        "url": "{{base_url}}/tasks",
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"title\": \"Apprendre Laravel\",\n  \"description\": \"Créer ma première API REST\",\n  \"completed\": false\n}"
+      "name": "1. Authentification",
+      "item": [
+        {
+          "name": "Créer un compte (201)",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "// Enregistre le jeton reçu pour les requêtes suivantes",
+            "if (pm.response.code === 201) pm.collectionVariables.set('token', pm.response.json().token);"
+          ] } }],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{base_url}}/register",
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Nouvel utilisateur\",\n  \"email\": \"nouveau@example.com\",\n  \"password\": \"password123\",\n  \"password_confirmation\": \"password123\"\n}" }
+          }
+        },
+        {
+          "name": "Se connecter - Francine (200)",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "// Enregistre le jeton reçu pour les requêtes suivantes",
+            "if (pm.response.code === 200) pm.collectionVariables.set('token', pm.response.json().token);"
+          ] } }],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{base_url}}/login",
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"francine@example.com\",\n  \"password\": \"password123\"\n}" }
+          }
+        },
+        {
+          "name": "Qui suis-je ? (200)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{base_url}}/me"
+          }
+        },
+        {
+          "name": "Se déconnecter (200)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{base_url}}/logout"
+          }
         }
-      }
+      ]
     },
     {
-      "name": "2. Lister les tâches (200)",
-      "request": {
-        "method": "GET",
-        "header": [{ "key": "Accept", "value": "application/json" }],
-        "url": "{{base_url}}/tasks"
-      }
-    },
-    {
-      "name": "3. Afficher une tâche (200)",
-      "request": {
-        "method": "GET",
-        "header": [{ "key": "Accept", "value": "application/json" }],
-        "url": "{{base_url}}/tasks/1"
-      }
-    },
-    {
-      "name": "4. Modifier une tâche (200)",
-      "request": {
-        "method": "PUT",
-        "header": [
-          { "key": "Accept", "value": "application/json" },
-          { "key": "Content-Type", "value": "application/json" }
-        ],
-        "url": "{{base_url}}/tasks/1",
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"title\": \"Maîtriser Laravel\"\n}"
+      "name": "2. Mes tâches",
+      "item": [
+        {
+          "name": "Créer une tâche (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{base_url}}/tasks",
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"Publier la démo #02\",\n  \"description\": \"Expliquer les jetons simplement\"\n}" }
+          }
+        },
+        {
+          "name": "Lister mes tâches (200)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{base_url}}/tasks"
+          }
+        },
+        {
+          "name": "Afficher ma tâche (200)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{base_url}}/tasks/1"
+          }
+        },
+        {
+          "name": "Modifier ma tâche (200)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{base_url}}/tasks/2",
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"Authentification terminée\"\n}" }
+          }
+        },
+        {
+          "name": "Marquer comme terminée (200)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{base_url}}/tasks/2/complete"
+          }
+        },
+        {
+          "name": "Supprimer ma tâche (200)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{base_url}}/tasks/3"
+          }
         }
-      }
+      ]
     },
     {
-      "name": "5. Marquer comme terminée (200)",
-      "request": {
-        "method": "PATCH",
-        "header": [{ "key": "Accept", "value": "application/json" }],
-        "url": "{{base_url}}/tasks/1/complete"
-      }
-    },
-    {
-      "name": "6. Erreur de validation - titre manquant (422)",
-      "request": {
-        "method": "POST",
-        "header": [
-          { "key": "Accept", "value": "application/json" },
-          { "key": "Content-Type", "value": "application/json" }
-        ],
-        "url": "{{base_url}}/tasks",
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"description\": \"Une tâche sans titre\"\n}"
+      "name": "3. Sécurité et erreurs",
+      "item": [
+        {
+          "name": "Sans jeton (401)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{base_url}}/tasks"
+          }
+        },
+        {
+          "name": "Mauvais mot de passe (401)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{base_url}}/login",
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"francine@example.com\",\n  \"password\": \"mauvais\"\n}" }
+          }
+        },
+        {
+          "name": "Tâche d'Alex (403)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{base_url}}/tasks/4"
+          }
+        },
+        {
+          "name": "Titre manquant (422)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{base_url}}/tasks",
+            "body": { "mode": "raw", "raw": "{\n  \"description\": \"Une tâche sans titre\"\n}" }
+          }
+        },
+        {
+          "name": "Tâche introuvable (404)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{base_url}}/tasks/999"
+          }
         }
-      }
-    },
-    {
-      "name": "7. Tâche introuvable (404)",
-      "request": {
-        "method": "GET",
-        "header": [{ "key": "Accept", "value": "application/json" }],
-        "url": "{{base_url}}/tasks/999"
-      }
-    },
-    {
-      "name": "8. Supprimer une tâche (200)",
-      "request": {
-        "method": "DELETE",
-        "header": [{ "key": "Accept", "value": "application/json" }],
-        "url": "{{base_url}}/tasks/1"
-      }
+      ]
     }
   ]
 }

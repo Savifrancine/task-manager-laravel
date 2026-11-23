@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Task;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 /**
  * TaskController — le "C" de MVC.
@@ -13,18 +14,22 @@ use Illuminate\Http\Request;
  * Le contrôleur reçoit la requête HTTP, demande au modèle (Task)
  * de lire ou d'écrire en base, puis renvoie une réponse JSON.
  * Une méthode = une action de l'API.
+ *
+ * Démo #02 : toutes ces routes sont protégées (middleware auth:sanctum).
+ * $request->user() est donc toujours l'utilisateur connecté.
  */
 class TaskController extends Controller
 {
     /**
-     * GET /api/tasks — Lister toutes les tâches.
+     * GET /api/tasks — Lister MES tâches.
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        // latest() = les plus récentes en premier
-        $tasks = Task::latest()->get();
+        // On part de l'utilisateur connecté : impossible de voir
+        // les tâches des autres, même par erreur.
+        $tasks = $request->user()->tasks()->latest()->get();
 
-        return response()->json($tasks); // 200 OK par défaut
+        return response()->json($tasks);
     }
 
     /**
@@ -33,16 +38,16 @@ class TaskController extends Controller
     public function store(Request $request): JsonResponse
     {
         // 1. On valide les données AVANT de toucher à la base.
-        //    Si une règle échoue, Laravel répond automatiquement
-        //    422 Unprocessable Content avec la liste des erreurs.
+        //    Si une règle échoue, Laravel répond automatiquement 422.
         $data = $request->validate([
             'title'       => 'required|string|max:255',
             'description' => 'nullable|string',
             'completed'   => 'boolean',
         ]);
 
-        // 2. On enregistre (seuls les champs de $fillable sont acceptés).
-        $task = Task::create($data);
+        // 2. On crée la tâche VIA la relation : Laravel remplit
+        //    user_id automatiquement avec l'id de l'utilisateur connecté.
+        $task = $request->user()->tasks()->create($data);
 
         // 3. 201 Created : le code HTTP standard pour une création réussie.
         return response()->json($task, 201);
@@ -50,12 +55,12 @@ class TaskController extends Controller
 
     /**
      * GET /api/tasks/{id} — Afficher une tâche.
-     *
-     * "Route Model Binding" : Laravel cherche tout seul la tâche
-     * correspondant à l'id de l'URL. Si elle n'existe pas → 404 automatique.
      */
     public function show(Task $task): JsonResponse
     {
+        // Vérifie la règle "manage" de TaskPolicy : 403 si ce n'est pas ma tâche.
+        Gate::authorize('manage', $task);
+
         return response()->json($task);
     }
 
@@ -64,8 +69,9 @@ class TaskController extends Controller
      */
     public function update(Request $request, Task $task): JsonResponse
     {
+        Gate::authorize('manage', $task);
+
         // "sometimes" = la règle ne s'applique que si le champ est envoyé.
-        // On peut donc modifier un seul champ sans renvoyer tous les autres.
         $data = $request->validate([
             'title'       => 'sometimes|required|string|max:255',
             'description' => 'nullable|string',
@@ -79,11 +85,11 @@ class TaskController extends Controller
 
     /**
      * PATCH /api/tasks/{id}/complete — Marquer une tâche comme terminée.
-     *
-     * Une route dédiée rend l'intention claire : pas besoin d'envoyer de corps JSON.
      */
     public function complete(Task $task): JsonResponse
     {
+        Gate::authorize('manage', $task);
+
         $task->update(['completed' => true]);
 
         return response()->json($task);
@@ -94,6 +100,8 @@ class TaskController extends Controller
      */
     public function destroy(Task $task): JsonResponse
     {
+        Gate::authorize('manage', $task);
+
         $task->delete();
 
         return response()->json([

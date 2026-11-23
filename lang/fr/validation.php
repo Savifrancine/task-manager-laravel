@@ -13,6 +13,7 @@ return [
     'accepted'  => 'Le champ :attribute doit être accepté.',
     'array'     => 'Le champ :attribute doit être un tableau.',
     'boolean'   => 'Le champ :attribute doit être vrai ou faux.',
+    'confirmed' => 'La confirmation du champ :attribute ne correspond pas.',
     'date'      => 'Le champ :attribute doit être une date valide.',
     'email'     => 'Le champ :attribute doit être une adresse e-mail valide.',
     'in'        => 'La valeur du champ :attribute est invalide.',
@@ -44,6 +45,9 @@ return [
         'title'       => 'titre',
         'description' => 'description',
         'completed'   => 'terminée',
+        'name'        => 'nom',
+        'email'       => 'e-mail',
+        'password'    => 'mot de passe',
     ],
 
 ];
