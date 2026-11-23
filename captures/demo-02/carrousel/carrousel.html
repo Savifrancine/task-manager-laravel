@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Carrousel Authentification</title>
+<style>
+  @page { size: 1080px 1350px; margin: 0; }
+  :root {
+    --bg: #0d1117;
+    --card: #161b22;
+    --line: #2a313c;
+    --text: #e6edf3;
+    --muted: #9da7b3;
+    --red: #ff2d20;
+    --green: #3fb950;
+    --blue: #58a6ff;
+    --yellow: #f2cc60;
+    --purple: #d2a8ff;
+    --orange: #ffa657;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--bg); }
+  body {
+    font-family: "Segoe UI", system-ui, sans-serif;
+    color: var(--text);
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+  .slide {
+    width: 1080px; height: 1350px;
+    padding: 90px 80px 120px;
+    position: relative; overflow: hidden;
+    display: flex; flex-direction: column; gap: 36px;
+    page-break-after: always; break-after: page;
+    background:
+      radial-gradient(900px 500px at 110% -10%, rgba(255,45,32,.16), transparent 60%),
+      var(--bg);
+  }
+  .slide:last-child { page-break-after: auto; break-after: auto; }
+
+  /* Pied de page */
+  .foot {
+    position: absolute; left: 80px; right: 80px; bottom: 50px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 24px; color: var(--muted);
+  }
+  .foot b { color: var(--text); font-weight: 600; }
+  .foot .next { color: var(--red); font-weight: 700; }
+
+  /* Typo */
+  .kicker { font-size: 24px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--red); }
+  h1 { font-size: 92px; line-height: 1.02; font-weight: 800; letter-spacing: -.02em; }
+  h2 { font-size: 62px; line-height: 1.08; font-weight: 800; letter-spacing: -.015em; }
+  .lead { font-size: 34px; line-height: 1.4; color: var(--muted); }
+  .lead b, p b { color: var(--text); }
+  p { font-size: 30px; line-height: 1.45; color: var(--muted); }
+  .red { color: var(--red); } .green { color: var(--green); }
+
+  /* Composants */
+  .card { background: var(--card); border: 2px solid var(--line); border-radius: 24px; padding: 32px 36px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 14px; }
+  .chip { font-size: 26px; font-weight: 600; padding: 12px 24px; border-radius: 999px; border: 2px solid var(--line); background: var(--card); }
+  .tip { font-size: 28px; line-height: 1.4; color: var(--text); border-left: 6px solid var(--red); padding: 18px 28px; background: rgba(255,45,32,.08); border-radius: 0 16px 16px 0; }
+  .tip.ok { border-color: var(--green); background: rgba(63,185,80,.08); }
+
+  /* Code */
+  pre {
+    font-family: "Cascadia Code", "Cascadia Mono", Consolas, monospace;
+    font-size: 26px; line-height: 1.5;
+    background: #010409; border: 2px solid var(--line); border-radius: 20px;
+    padding: 28px 32px; white-space: pre; color: var(--text);
+  }
+  /* Pas de ligatures : "->" et "=>" doivent rester tels qu'on les tape */
+  pre, code, .verb, .msg { font-variant-ligatures: none; font-feature-settings: "calt" 0, "liga" 0; }
+  pre .file { display: block; font-size: 20px; color: var(--muted); margin-bottom: 12px; font-family: "Segoe UI", sans-serif; }
+  .k { color: #ff7b72; } .s { color: #a5d6ff; } .f { color: var(--purple); }
+  .c { color: #8b949e; } .v { color: var(--orange); } .n { color: #79c0ff; }
+
+  /* Captures */
+  .shot { width: 100%; border-radius: 18px; border: 2px solid var(--line); display: block; }
+  .label { font-size: 22px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: -20px; }
+
+  /* Verbes HTTP */
+  .verb { display: inline-block; min-width: 150px; font-family: "Cascadia Code", Consolas, monospace; font-weight: 700; font-size: 26px; }
+  .GET { color: var(--green); } .POST { color: var(--yellow); } .PUT { color: var(--blue); }
+  .PATCH { color: var(--purple); } .DELETE { color: var(--red); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 27px; }
+  td { padding: 17px 20px; border-bottom: 2px solid var(--line); }
+  td code { font-family: "Cascadia Code", Consolas, monospace; font-size: 25px; }
+  td:last-child { color: var(--muted); }
+
+  /* Schéma API */
+  .flow { display: flex; align-items: center; gap: 16px; }
+  .node { flex: 1; text-align: center; padding: 30px 14px; border-radius: 22px; border: 2px solid var(--line); background: var(--card); }
+  .node .ico { font-size: 56px; }
+  .node .t { font-size: 30px; font-weight: 700; margin-top: 8px; }
+  .node .d { font-size: 22px; color: var(--muted); margin-top: 4px; }
+  .node.hl { border-color: var(--red); }
+  .arrow { font-size: 44px; color: var(--muted); }
+  .msg { display: flex; justify-content: space-between; gap: 20px; font-family: "Cascadia Code", Consolas, monospace; font-size: 24px; }
+  .msg div { flex: 1; padding: 18px 22px; border-radius: 16px; background: #010409; border: 2px solid var(--line); }
+
+  /* Étapes MVC */
+  .steps { display: flex; flex-direction: column; gap: 18px; }
+  .step { display: flex; align-items: center; gap: 28px; }
+  .num { flex: none; width: 72px; height: 72px; border-radius: 50%; background: var(--red); color: #fff; font-size: 34px; font-weight: 800; display: grid; place-items: center; }
+  .step .card { flex: 1; padding: 22px 30px; }
+  .step .t { font-size: 32px; font-weight: 700; }
+  .step .t code { font-family: "Cascadia Code", Consolas, monospace; font-size: 24px; color: var(--muted); font-weight: 400; margin-left: 10px; }
+  .step .d { font-size: 25px; color: var(--muted); margin-top: 4px; }
+  .down { margin-left: 22px; font-size: 30px; color: var(--muted); line-height: .6; }
+
+  .lessons { display: flex; flex-direction: column; gap: 30px; margin-top: 20px; }
+  .lesson { display: flex; gap: 30px; align-items: center; }
+  .lesson > div:last-child { flex: 1; }
+  .lesson .num { width: 88px; height: 88px; font-size: 42px; }
+  .lesson .t { font-size: 40px; font-weight: 700; line-height: 1.2; }
+  .lesson .d { font-size: 30px; color: var(--muted); margin-top: 8px; line-height: 1.4; }
+  .cta { display: flex; flex-direction: column; gap: 14px; font-size: 30px; }
+  .spacer { flex: 1; }
+</style>
+<style>
+  /* Ajouts démo #02 */
+  .vs { display: flex; gap: 24px; }
+  .vs .card { flex: 1; display: flex; flex-direction: column; gap: 14px; }
+  .vs .code { font-size: 64px; font-weight: 800; font-family: "Cascadia Code", Consolas, monospace; }
+  .vs .q { font-size: 34px; font-weight: 700; }
+  .vs .d { font-size: 26px; color: var(--muted); line-height: 1.4; }
+  .card.red { border-color: var(--red); } .card.orange { border-color: var(--orange); }
+  .orange { color: var(--orange); }
+  .bug { display: flex; flex-direction: column; gap: 10px; }
+  .bug .t { font-size: 32px; font-weight: 700; }
+  .bug .d { font-size: 26px; color: var(--muted); line-height: 1.4; }
+  .term { font-size: 22px; line-height: 1.45; }
+</style>
+</head>
+<body>
+
+<!-- 1. COUVERTURE -->
+<section class="slide">
+  <div class="spacer"></div>
+  <div class="kicker">Démonstration #02 · De la théorie à la pratique</div>
+  <h1>Sécuriser une API : <span class="red">l'authentification</span></h1>
+  <p class="lead">Dans la démo #01, <b>n'importe qui</b> pouvait lire et supprimer toutes les tâches. Aujourd'hui, chacun ne touche <b>qu'aux siennes</b>.</p>
+  <div class="chips">
+    <span class="chip">Laravel 13</span><span class="chip">Sanctum</span><span class="chip">Jetons</span>
+    <span class="chip">Policies</span><span class="chip">401 vs 403</span><span class="chip">PHPUnit</span>
+  </div>
+  <div class="spacer"></div>
+  <pre><span class="c"># Les 3 questions de cette démo</span>
+<span class="n">1.</span> Comment l'API sait-elle <b>qui</b> je suis ?
+<span class="n">2.</span> Comment m'empêcher de toucher aux tâches des autres ?
+<span class="n">3.</span> Quelle différence entre <span class="orange">401</span> et <span class="red">403</span> ?</pre>
+  <div class="foot"><span><b>Francine Savi</b> · Task Manager</span><span class="next">Swipe →</span></div>
+</section>
+
+<!-- 2. LE JETON -->
+<section class="slide">
+  <div class="kicker">Le principe</div>
+  <h2>Un jeton, c'est un badge d'accès</h2>
+  <p class="lead">Une API ne se « souvient » de personne. Plutôt que de redonner son mot de passe à chaque requête, on reçoit un <b>jeton</b> une fois, puis on le montre.</p>
+  <div class="steps">
+    <div class="step"><div class="num">1</div><div class="card"><div class="t">Je me connecte <code>POST /api/login</code></div><div class="d">J'envoie mon e-mail et mon mot de passe.</div></div></div>
+    <div class="step"><div class="num">2</div><div class="card"><div class="t">L'API me donne un jeton <code>"2|G9XZ…"</code></div><div class="d">Une longue chaîne secrète, enregistrée en base.</div></div></div>
+    <div class="step"><div class="num">3</div><div class="card"><div class="t">Je le montre à chaque requête</div><div class="d"><code style="font-family:'Cascadia Code',Consolas,monospace">Authorization: Bearer 2|G9XZ…</code></div></div></div>
+    <div class="step"><div class="num">4</div><div class="card"><div class="t">Je me déconnecte <code>POST /api/logout</code></div><div class="d">Le jeton est détruit : il ne marchera plus jamais.</div></div></div>
+  </div>
+  <div class="tip">Le mot de passe est <b>chiffré</b> en base et n'est <b>jamais</b> renvoyé par l'API.</div>
+  <div class="foot"><span><b>Francine Savi</b> · Task Manager</span><span>2 / 10</span></div>
+</section>
+
+<!-- 3. 401 VS 403 -->
+<section class="slide">
+  <div class="kicker">La notion clé</div>
+  <h2>Authentification ≠ Autorisation</h2>
+  <p class="lead">Deux mots qui se ressemblent, deux questions différentes, deux codes HTTP différents.</p>
+  <div class="vs">
+    <div class="card orange">
+      <div class="code orange">401</div>
+      <div class="q">« Qui es-tu ? »</div>
+      <div class="d"><b style="color:var(--text)">Authentification.</b> Pas de jeton, ou un jeton invalide : l'API ne sait pas qui tu es.</div>
+      <div class="d">🏢 Tu n'as pas de badge : tu ne rentres pas dans l'immeuble.</div>
+    </div>
+    <div class="card red">
+      <div class="code red">403</div>
+      <div class="q">« As-tu le droit ? »</div>
+      <div class="d"><b style="color:var(--text)">Autorisation.</b> L'API sait qui tu es, mais cette tâche appartient à quelqu'un d'autre.</div>
+      <div class="d">🚪 Tu as un badge, mais ce n'est pas ton bureau.</div>
+    </div>
+  </div>
+  <div class="tip">Un bon code d'erreur dit <b>exactement</b> au client ce qui ne va pas : se connecter (401) ou renoncer (403).</div>
+  <div class="foot"><span><b>Francine Savi</b> · Task Manager</span><span>3 / 10</span></div>
+</section>
+
+<!-- 4. ROUTES PROTEGEES + LOGIN -->
+<section class="slide">
+  <div class="kicker">Étape 1 · Le code</div>
+  <h2>Un gardien devant les routes</h2>
+  <pre><span class="file">routes/api.php</span><span class="c">// Publiques : pas besoin d'être connecté</span>
+<span class="n">Route</span>::<span class="f">post</span>(<span class="s">'login'</span>, [<span class="n">AuthController</span>::<span class="k">class</span>, <span class="s">'login'</span>]);
+
+<span class="c">// Protégées : jeton obligatoire, sinon 401</span>
+<span class="n">Route</span>::<span class="f">middleware</span>(<span class="s">'auth:sanctum'</span>)-&gt;<span class="f">group</span>(<span class="k">function</span> () {
+    <span class="n">Route</span>::<span class="f">apiResource</span>(<span class="s">'tasks'</span>, <span class="n">TaskController</span>::<span class="k">class</span>);
+});</pre>
+  <pre><span class="file">app/Http/Controllers/Api/AuthController.php</span><span class="c">// Même message si l'e-mail OU le mot de passe est faux :</span>
+<span class="c">// on ne révèle pas quels e-mails existent.</span>
+<span class="k">if</span> (! <span class="v">$user</span> || ! <span class="n">Hash</span>::<span class="f">check</span>(…)) {
+    <span class="c">// "Identifiants incorrects."</span>
+    <span class="k">return</span> <span class="f">response</span>()-&gt;<span class="f">json</span>([…], <span class="n">401</span>);
+}
+<span class="v">$token</span> = <span class="v">$user</span>-&gt;<span class="f">createToken</span>(<span class="s">'api'</span>)-&gt;plainTextToken;</pre>
+  <div class="tip">Le <b>middleware</b> est un gardien posté devant les routes : il vérifie le jeton <b>avant</b> que le contrôleur ne s'exécute.</div>
+  <div class="foot"><span><b>Francine Savi</b> · Task Manager</span><span>4 / 10</span></div>
+</section>
+
+<!-- 5. PROPRIETAIRE -->
+<section class="slide">
+  <div class="kicker">Étape 2 · Chaque tâche a un propriétaire</div>
+  <h2>Chaque tâche a son <span class="red">user_id</span></h2>
+  <pre><span class="file">app/Models/User.php · TaskController.php</span><span class="c">// Un utilisateur possède plusieurs tâches</span>
+<span class="k">return</span> <span class="v">$this</span>-&gt;<span class="f">hasMany</span>(<span class="n">Task</span>::<span class="k">class</span>);
+
+<span class="c">// Créer VIA la relation : user_id est rempli tout seul</span>
+<span class="v">$request</span>-&gt;<span class="f">user</span>()-&gt;<span class="f">tasks</span>()-&gt;<span class="f">create</span>(<span class="v">$data</span>);</pre>
+  <div class="label">Je n'envoie pas de user_id…</div>
+  <img class="shot" src="create-req.png" alt="Requête POST sans user_id">
+  <div class="label">… l'API l'ajoute elle-même</div>
+  <img class="shot" src="create-res.png" alt="Réponse 201 avec user_id 1">
+  <div class="foot"><span><b>Francine Savi</b> · Task Manager</span><span>5 / 10</span></div>
+</section>
+
+<!-- 6. POLICY -->
+<section class="slide">
+  <div class="kicker">Étape 3 · L'autorisation</div>
+  <h2>Une règle, écrite une seule fois</h2>
+  <p>Une <b>Policy</b> regroupe les règles d'accès dans un seul fichier.</p>
+  <pre><span class="file">app/Policies/TaskPolicy.php</span><span class="k">public function</span> <span class="f">manage</span>(<span class="n">User</span> <span class="v">$user</span>, <span class="n">Task</span> <span class="v">$task</span>): <span class="n">Response</span>
+{
+    <span class="k">return</span> <span class="v">$user</span>-&gt;id === <span class="v">$task</span>-&gt;user_id
+        ? <span class="n">Response</span>::<span class="f">allow</span>()
+        : <span class="n">Response</span>::<span class="f">deny</span>(
+            <span class="s">'Cette tâche ne vous appartient pas.'</span>);
+}</pre>
+  <pre><span class="file">app/Http/Controllers/Api/TaskController.php</span><span class="k">public function</span> <span class="f">show</span>(<span class="n">Task</span> <span class="v">$task</span>)
+{
+    <span class="c">// Pas ma tâche ? Laravel s'arrête ici et répond 403</span>
+    <span class="n">Gate</span>::<span class="f">authorize</span>(<span class="s">'manage'</span>, <span class="v">$task</span>);
+    <span class="k">return</span> <span class="f">response</span>()-&gt;<span class="f">json</span>(<span class="v">$task</span>);
+}</pre>
+  <div class="tip">La même ligne protège <b>afficher, modifier, terminer et supprimer</b>.</div>
+  <div class="foot"><span><b>Francine Savi</b> · Task Manager</span><span>6 / 10</span></div>
+</section>
+
+<!-- 7. POSTMAN LOGIN -->
+<section class="slide">
+  <div class="kicker">Tester avec Postman</div>
+  <h2><span class="green">✓</span> Je me connecte</h2>
+  <div class="label">J'envoie mes identifiants</div>
+  <img class="shot" src="login-req.png" alt="Requête POST /login">
+  <div class="label">L'API me répond avec un jeton</div>
+  <img class="shot" src="login-res.png" alt="Réponse 200 avec le jeton">
+  <div class="tip ok">Pas de <b>password</b> dans la réponse : il est masqué par le modèle. Postman enregistre le <b>token</b> tout seul pour les requêtes suivantes.</div>
+  <div class="foot"><span><b>Francine Savi</b> · Task Manager</span><span>7 / 10</span></div>
+</section>
+
+<!-- 8. POSTMAN 401 / 403 -->
+<section class="slide">
+  <div class="kicker">Tester les refus</div>
+  <h2><span class="red">✗</span> Sans badge, ou pas mon bureau</h2>
+  <div class="label">Sans jeton → <span class="orange">401</span></div>
+  <img class="shot" src="401-req.png" alt="GET /tasks sans jeton">
+  <img class="shot" src="401-res.png" alt="Réponse 401">
+  <div class="label">Connectée, mais la tâche n°4 est à Alex → <span class="red">403</span></div>
+  <img class="shot" src="403-req.png" alt="GET /tasks/4">
+  <img class="shot" src="403-res.png" alt="Réponse 403">
+  <div class="tip">Les deux refus sont en <b>JSON</b> et en <b>français</b>, sans aucun détail technique sur le serveur.</div>
+  <div class="foot"><span><b>Francine Savi</b> · Task Manager</span><span>8 / 10</span></div>
+</section>
+
+<!-- 9. BUGS + TESTS -->
+<section class="slide">
+  <div class="kicker">Ce que j'ai appris</div>
+  <h2>Mes tests passaient… et pourtant il y avait 2 bugs</h2>
+  <div class="card bug">
+    <div class="t">🐛 Sans jeton → erreur <span class="red">500</span> au lieu de 401</div>
+    <div class="d">Sans le header <b>Accept: application/json</b>, Laravel essayait de rediriger vers une page de connexion… qui n'existe pas dans une API.</div>
+  </div>
+  <div class="card bug">
+    <div class="t">🐛 Le 403 affichait la trace interne du serveur</div>
+    <div class="d">Noms de fichiers, numéros de ligne : des informations qu'un attaquant ne doit jamais voir.</div>
+  </div>
+  <p>Je les ai trouvés <b>en testant à la main</b>, corrigés, puis j'ai ajouté un test pour que ça ne revienne jamais :</p>
+  <pre class="term">  <span class="green">PASS</span>  Tests\Feature\AuthTest
+  <span class="green">✓</span> sans jeton les taches sont inaccessibles
+  <span class="green">✓</span> sans jeton ni header accept on recoit quand meme un 401 json
+  <span class="green">✓</span> parcours complet avec un vrai jeton
+  <span class="green">PASS</span>  Tests\Feature\TaskApiTest
+  <span class="green">✓</span> on ne peut pas toucher a la tache d un autre
+  <span class="c">  …</span>
+  Tests:    <span class="green">17 passed</span> (55 assertions)</pre>
+  <div class="foot"><span><b>Francine Savi</b> · Task Manager</span><span>9 / 10</span></div>
+</section>
+
+<!-- 10. CONCLUSION -->
+<section class="slide">
+  <div class="kicker">À retenir</div>
+  <h2>3 leçons de cette démo</h2>
+  <div class="lessons">
+    <div class="lesson"><div class="num">1</div><div><div class="t">401 et 403 ne disent pas la même chose</div><div class="d">401 : « qui es-tu ? » · 403 : « tu n'as pas le droit ».</div></div></div>
+    <div class="lesson"><div class="num">2</div><div><div class="t">Le serveur décide, jamais le client</div><div class="d">Le propriétaire d'une tâche vient du jeton, pas des données envoyées.</div></div></div>
+    <div class="lesson"><div class="num">3</div><div><div class="t">Les tests automatiques ne suffisent pas</div><div class="d">Un vrai essai en conditions réelles a révélé 2 bugs.</div></div></div>
+  </div>
+  <div class="spacer"></div>
+  <div class="card cta">
+    <div>🔗 <b>Le code complet est sur GitHub</b> (lien en commentaire)</div>
+    <div>💬 <b>Démo #03 :</b> lancer toute l'API avec <b>Docker</b> ? <span style="color:var(--muted)">Dis-moi en commentaire !</span></div>
+    <div>♻️ <b>Partage</b> si ça peut aider quelqu'un qui apprend</div>
+  </div>
+  <div class="foot"><span><b>Francine Savi</b> · Task Manager</span><span>10 / 10</span></div>
+</section>
+
+<script>
+  // Aperçu d'une seule diapositive : carrousel.html#3
+  var n = parseInt(location.hash.slice(1), 10);
+  if (n) document.querySelectorAll('.slide').forEach(function (s, i) {
+    if (i !== n - 1) s.style.display = 'none';
+  });
+</script>
+</body>
+</html>
