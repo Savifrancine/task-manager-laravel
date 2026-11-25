@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Carrousel Docker</title>
+<style>
+  @page { size: 1080px 1350px; margin: 0; }
+  :root {
+    --bg: #0d1117;
+    --card: #161b22;
+    --line: #2a313c;
+    --text: #e6edf3;
+    --muted: #9da7b3;
+    --red: #ff2d20;
+    --green: #3fb950;
+    --blue: #58a6ff;
+    --yellow: #f2cc60;
+    --purple: #d2a8ff;
+    --orange: #ffa657;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--bg); }
+  body {
+    font-family: "Segoe UI", system-ui, sans-serif;
+    color: var(--text);
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+  .slide {
+    width: 1080px; height: 1350px;
+    padding: 90px 80px 120px;
+    position: relative; overflow: hidden;
+    display: flex; flex-direction: column; gap: 36px;
+    page-break-after: always; break-after: page;
+    background:
+      radial-gradient(900px 500px at 110% -10%, rgba(255,45,32,.16), transparent 60%),
+      var(--bg);
+  }
+  .slide:last-child { page-break-after: auto; break-after: auto; }
+
+  /* Pied de page */
+  .foot {
+    position: absolute; left: 80px; right: 80px; bottom: 50px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 24px; color: var(--muted);
+  }
+  .foot b { color: var(--text); font-weight: 600; }
+  .foot .next { color: var(--red); font-weight: 700; }
+
+  /* Typo */
+  .kicker { font-size: 24px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--red); }
+  h1 { font-size: 92px; line-height: 1.02; font-weight: 800; letter-spacing: -.02em; }
+  h2 { font-size: 62px; line-height: 1.08; font-weight: 800; letter-spacing: -.015em; }
+  .lead { font-size: 34px; line-height: 1.4; color: var(--muted); }
+  .lead b, p b { color: var(--text); }
+  p { font-size: 30px; line-height: 1.45; color: var(--muted); }
+  .red { color: var(--red); } .green { color: var(--green); }
+
+  /* Composants */
+  .card { background: var(--card); border: 2px solid var(--line); border-radius: 24px; padding: 32px 36px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 14px; }
+  .chip { font-size: 26px; font-weight: 600; padding: 12px 24px; border-radius: 999px; border: 2px solid var(--line); background: var(--card); }
+  .tip { font-size: 28px; line-height: 1.4; color: var(--text); border-left: 6px solid var(--red); padding: 18px 28px; background: rgba(255,45,32,.08); border-radius: 0 16px 16px 0; }
+  .tip.ok { border-color: var(--green); background: rgba(63,185,80,.08); }
+
+  /* Code */
+  pre {
+    font-family: "Cascadia Code", "Cascadia Mono", Consolas, monospace;
+    font-size: 26px; line-height: 1.5;
+    background: #010409; border: 2px solid var(--line); border-radius: 20px;
+    padding: 28px 32px; white-space: pre; color: var(--text);
+  }
+  /* Pas de ligatures : "->" et "=>" doivent rester tels qu'on les tape */
+  pre, code, .verb, .msg { font-variant-ligatures: none; font-feature-settings: "calt" 0, "liga" 0; }
+  pre .file { display: block; font-size: 20px; color: var(--muted); margin-bottom: 12px; font-family: "Segoe UI", sans-serif; }
+  .k { color: #ff7b72; } .s { color: #a5d6ff; } .f { color: var(--purple); }
+  .c { color: #8b949e; } .v { color: var(--orange); } .n { color: #79c0ff; }
+
+  /* Captures */
+  .shot { width: 100%; border-radius: 18px; border: 2px solid var(--line); display: block; }
+  .label { font-size: 22px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: -20px; }
+
+  /* Verbes HTTP */
+  .verb { display: inline-block; min-width: 150px; font-family: "Cascadia Code", Consolas, monospace; font-weight: 700; font-size: 26px; }
+  .GET { color: var(--green); } .POST { color: var(--yellow); } .PUT { color: var(--blue); }
+  .PATCH { color: var(--purple); } .DELETE { color: var(--red); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 27px; }
+  td { padding: 17px 20px; border-bottom: 2px solid var(--line); }
+  td code { font-family: "Cascadia Code", Consolas, monospace; font-size: 25px; }
+  td:last-child { color: var(--muted); }
+
+  /* Schéma API */
+  .flow { display: flex; align-items: center; gap: 16px; }
+  .node { flex: 1; text-align: center; padding: 30px 14px; border-radius: 22px; border: 2px solid var(--line); background: var(--card); }
+  .node .ico { font-size: 56px; }
+  .node .t { font-size: 30px; font-weight: 700; margin-top: 8px; }
+  .node .d { font-size: 22px; color: var(--muted); margin-top: 4px; }
+  .node.hl { border-color: var(--red); }
+  .arrow { font-size: 44px; color: var(--muted); }
+  .msg { display: flex; justify-content: space-between; gap: 20px; font-family: "Cascadia Code", Consolas, monospace; font-size: 24px; }
+  .msg div { flex: 1; padding: 18px 22px; border-radius: 16px; background: #010409; border: 2px solid var(--line); }
+
+  /* Étapes MVC */
+  .steps { display: flex; flex-direction: column; gap: 18px; }
+  .step { display: flex; align-items: center; gap: 28px; }
+  .num { flex: none; width: 72px; height: 72px; border-radius: 50%; background: var(--red); color: #fff; font-size: 34px; font-weight: 800; display: grid; place-items: center; }
+  .step .card { flex: 1; padding: 22px 30px; }
+  .step .t { font-size: 32px; font-weight: 700; }
+  .step .t code { font-family: "Cascadia Code", Consolas, monospace; font-size: 24px; color: var(--muted); font-weight: 400; margin-left: 10px; }
+  .step .d { font-size: 25px; color: var(--muted); margin-top: 4px; }
+  .down { margin-left: 22px; font-size: 30px; color: var(--muted); line-height: .6; }
+
+  .lessons { display: flex; flex-direction: column; gap: 30px; margin-top: 20px; }
+  .lesson { display: flex; gap: 30px; align-items: center; }
+  .lesson > div:last-child { flex: 1; }
+  .lesson .num { width: 88px; height: 88px; font-size: 42px; }
+  .lesson .t { font-size: 40px; font-weight: 700; line-height: 1.2; }
+  .lesson .d { font-size: 30px; color: var(--muted); margin-top: 8px; line-height: 1.4; }
+  .cta { display: flex; flex-direction: column; gap: 14px; font-size: 30px; }
+  .spacer { flex: 1; }
+</style>
+<style>
+  /* Ajouts démo #03 */
+  .vs { display: flex; gap: 24px; }
+  .vs .card { flex: 1; display: flex; flex-direction: column; gap: 12px; }
+  .vs .q { font-size: 32px; font-weight: 700; }
+  .vs ul { list-style: none; display: flex; flex-direction: column; gap: 10px; font-size: 26px; color: var(--muted); }
+  .card.red { border-color: var(--red); } .card.green { border-color: var(--green); }
+  .orange { color: var(--orange); } .blue { color: var(--blue); }
+  .bug { display: flex; flex-direction: column; gap: 10px; }
+  .bug .t { font-size: 31px; font-weight: 700; }
+  .bug .d { font-size: 25px; color: var(--muted); line-height: 1.4; }
+  .notions td:first-child { width: 230px; font-weight: 700; color: var(--text); font-size: 28px; }
+  .notions td:nth-child(2) { font-size: 34px; width: 70px; text-align: center; }
+  .notions td:last-child { font-size: 26px; }
+  .arch { display: flex; flex-direction: column; gap: 14px; font-size: 26px; }
+  .arch .row { display: flex; align-items: center; gap: 18px; }
+  .arch .win { flex: none; width: 230px; text-align: center; padding: 22px 10px; border-radius: 18px; border: 2px dashed var(--line); font-family: "Cascadia Code", Consolas, monospace; font-size: 24px; }
+  .arch .box { flex: 1; padding: 22px 26px; border-radius: 18px; border: 2px solid var(--blue); background: rgba(88,166,255,.07); }
+  .arch .box .t { font-size: 29px; font-weight: 700; }
+  .arch .box .d { font-size: 23px; color: var(--muted); margin-top: 4px; font-family: "Cascadia Code", Consolas, monospace; }
+  .arch .box.vol { border-color: var(--purple); background: rgba(210,168,255,.07); }
+  .arch .ar { font-size: 34px; color: var(--muted); }
+  .arch .down { margin-left: 470px; }
+  .docker-zone { border: 2px solid var(--line); border-radius: 24px; padding: 18px 22px 22px; display: flex; flex-direction: column; gap: 14px; }
+  .zone-label { font-size: 20px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--blue); }
+</style>
+</head>
+<body>
+
+<!-- 1. COUVERTURE -->
+<section class="slide">
+  <div class="spacer"></div>
+  <div class="kicker">Démonstration #03 · De la théorie à la pratique</div>
+  <h1>Mon API démarre <span class="red">en une commande</span>, sur n'importe quel PC</h1>
+  <p class="lead">Fini « ça marche chez moi ». Avec <b>Docker</b>, l'API et sa base MySQL se lancent ensemble, sans rien installer d'autre.</p>
+  <div class="chips">
+    <span class="chip">Docker</span><span class="chip">Docker Compose</span><span class="chip">Dockerfile</span>
+    <span class="chip">MySQL 8.4</span><span class="chip">Laravel 13</span><span class="chip">Volumes</span>
+  </div>
+  <div class="spacer"></div>
+  <pre><span class="c"># Avant : installer PHP, Composer, XAMPP, configurer…</span>
+<span class="c"># Maintenant :</span>
+<span class="green">$</span> docker compose up -d --build
+<span class="green">✔</span> Container task-manager-db-1   <span class="green">Healthy</span>
+<span class="green">✔</span> Container task-manager-app-1  <span class="green">Started</span></pre>
+  <div class="foot"><span><b>Francine Savi</b> · Task Manager</span><span class="next">Swipe →</span></div>
+</section>
+
+<!-- 2. LE PROBLEME -->
+<section class="slide">
+  <div class="kicker">Le problème</div>
+  <h2>« Pourtant, ça marche sur ma machine ! »</h2>
+  <p class="lead">Pour lancer mon API, quelqu'un devait installer <b>exactement</b> les mêmes outils que moi, dans les bonnes versions.</p>
+  <div class="vs">
+    <div class="card red">
+      <div class="q red">✗ Sans Docker</div>
+      <ul>
+        <li>• Installer PHP 8.4</li>
+        <li>• Installer Composer</li>
+        <li>• Installer XAMPP pour MySQL</li>
+        <li>• Activer les bonnes extensions</li>
+        <li>• Créer la base à la main</li>
+        <li>• Configurer le fichier .env</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <div class="q green">✓ Avec Docker</div>
+      <ul>
+        <li>• Installer Docker Desktop</li>
+        <li>• Taper une commande</li>
+        <li style="margin-top:16px;color:var(--text)">C'est tout.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="tip ok">Docker emballe l'application <b>avec tout ce dont elle a besoin</b> : le même résultat sur mon PC, celui d'un collègue ou un serveur.</div>
+  <div class="foot"><span><b>Francine Savi</b> · Task Manager</span><span>2 / 10</span></div>
+</section>
+
+<!-- 3. LES NOTIONS -->
+<section class="slide">
+  <div class="kicker">Les bases</div>
+  <h2>5 mots pour comprendre Docker</h2>
+  <p class="lead">Une image pour retenir : <b>faire des gâteaux</b>. 🎂</p>
+  <table class="notions">
+    <tr><td>Image</td><td>🍰</td><td>Le <b>moule</b> : le système, PHP, le code. Figée, réutilisable.</td></tr>
+    <tr><td>Conteneur</td><td>🎂</td><td>Le <b>gâteau</b> sorti du moule : l'application qui tourne vraiment.</td></tr>
+    <tr><td>Dockerfile</td><td>📜</td><td>La <b>recette</b> pour fabriquer l'image, étape par étape.</td></tr>
+    <tr><td>Compose</td><td>🎼</td><td>Le <b>chef d'orchestre</b> : lance l'API et MySQL ensemble.</td></tr>
+    <tr><td>Volume</td><td>🗄️</td><td>Le <b>placard</b> où MySQL range ses données, même conteneur éteint.</td></tr>
+  </table>
+  <div class="tip">Un conteneur n'est <b>pas</b> un ordinateur virtuel complet : il partage le système de la machine. C'est pour ça qu'il démarre en quelques secondes.</div>
+  <div class="foot"><span><b>Francine Savi</b> · Task Manager</span><span>3 / 10</span></div>
+</section>
+
+<!-- 4. DOCKERFILE -->
+<section class="slide">
+  <div class="kicker">Étape 1 · La recette</div>
+  <h2>Le Dockerfile</h2>
+  <pre><span class="file">Dockerfile (version simplifiée)</span><span class="c"># 1. Partir d'une image officielle avec PHP 8.4</span>
+<span class="k">FROM</span> php:8.4-cli
+
+<span class="c"># 2. Ajouter l'extension pour parler à MySQL</span>
+<span class="k">RUN</span> docker-php-ext-install pdo_mysql
+
+<span class="c"># 3. Récupérer Composer</span>
+<span class="k">COPY</span> --from=composer:2 /usr/bin/composer /usr/bin/
+
+<span class="c"># 4. Installer les dépendances, PUIS copier le code</span>
+<span class="k">WORKDIR</span> /app
+<span class="k">COPY</span> composer.json composer.lock ./
+<span class="k">RUN</span> composer install
+<span class="k">COPY</span> . .
+
+<span class="c"># 5. Au démarrage : tables + serveur</span>
+<span class="k">ENTRYPOINT</span> [<span class="s">"sh"</span>, <span class="s">"docker/entrypoint.sh"</span>]</pre>
+  <div class="tip">Pourquoi les dépendances <b>avant</b> le code ? Docker garde chaque étape en cache. Si je modifie mon code, il ne réinstalle pas tout : le build passe de minutes à secondes.</div>
+  <div class="foot"><span><b>Francine Savi</b> · Task Manager</span><span>4 / 10</span></div>
+</section>
+
+<!-- 5. COMPOSE -->
+<section class="slide">
+  <div class="kicker">Étape 2 · Le chef d'orchestre</div>
+  <h2>docker-compose.yml</h2>
+  <pre><span class="file">docker-compose.yml</span><span class="n">services</span>:
+  <span class="n">app</span>:                         <span class="c"># mon API</span>
+    <span class="f">build</span>: .                    <span class="c"># avec mon Dockerfile</span>
+    <span class="f">ports</span>: [<span class="s">"8080:8000"</span>]
+    <span class="f">depends_on</span>:
+      <span class="n">db</span>: { <span class="f">condition</span>: service_healthy }
+
+  <span class="n">db</span>:                          <span class="c"># la base</span>
+    <span class="f">image</span>: mysql:8.4            <span class="c"># image officielle</span>
+    <span class="f">ports</span>: [<span class="s">"3307:3306"</span>]
+    <span class="f">volumes</span>: [db-data:/var/lib/mysql]
+    <span class="f">healthcheck</span>: …              <span class="c"># « MySQL est prêt ? »</span></pre>
+  <div class="tip"><b>depends_on + healthy</b> : l'API attend que MySQL soit réellement prêt avant de démarrer.</div>
+  <div class="tip ok"><b>"8080:8000"</b> se lit : le port <b>8080 de mon PC</b> mène au port <b>8000 du conteneur</b>.</div>
+  <div class="foot"><span><b>Francine Savi</b> · Task Manager</span><span>5 / 10</span></div>
+</section>
+
+<!-- 6. ARCHITECTURE -->
+<section class="slide">
+  <div class="kicker">Vue d'ensemble</div>
+  <h2>Qui parle à qui ?</h2>
+  <div class="arch">
+    <div class="row"><div class="win">Postman<br>:8080</div><div class="ar">→</div>
+      <div class="docker-zone" style="flex:1">
+        <div class="zone-label">🐳 Docker</div>
+        <div class="box"><div class="t">Conteneur « app »</div><div class="d">PHP 8.4 + Laravel · port 8000</div></div>
+        <div class="ar" style="text-align:center">↓ DB_HOST=db</div>
+        <div class="box"><div class="t">Conteneur « db »</div><div class="d">MySQL 8.4 · port 3306</div></div>
+        <div class="ar" style="text-align:center">↓</div>
+        <div class="box vol"><div class="t">Volume « db-data »</div><div class="d">les données survivent aux arrêts</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="tip">Entre conteneurs, on s'appelle <b>par son nom</b> : l'API cherche MySQL à l'adresse <b>db</b>, pas 127.0.0.1.</div>
+  <div class="tip ok">J'ai choisi <b>8080</b> et <b>3307</b> pour ne pas gêner XAMPP (3306) : les deux tournent en même temps.</div>
+  <div class="foot"><span><b>Francine Savi</b> · Task Manager</span><span>6 / 10</span></div>
+</section>
+
+<!-- 7. DOCKER DESKTOP -->
+<section class="slide">
+  <div class="kicker">Le résultat</div>
+  <h2><span class="green">✓</span> Les 2 conteneurs tournent</h2>
+  <div class="label">Docker Desktop</div>
+  <img class="shot" src="containers.png" alt="Conteneurs db-1 et app-1 dans Docker Desktop">
+  <p><b>db-1</b> : l'image officielle <b>mysql:8.4</b>, sur le port 3307.<br><b>app-1</b> : mon API, construite avec mon Dockerfile, sur le port 8080.</p>
+  <div class="label">Dans Postman, je change juste l'adresse</div>
+  <img class="shot" src="variables.png" alt="base_url = http://127.0.0.1:8080/api">
+  <div class="tip ok">Le code de l'API n'a <b>pas changé d'une ligne</b>. Seul l'endroit où elle tourne a changé.</div>
+  <div class="foot"><span><b>Francine Savi</b> · Task Manager</span><span>7 / 10</span></div>
+</section>
+
+<!-- 8. POSTMAN -->
+<section class="slide">
+  <div class="kicker">Tester avec Postman</div>
+  <h2>Même API, mêmes réponses</h2>
+  <div class="label">Connexion → <span class="green">200</span> et un jeton</div>
+  <img class="shot" src="login-res.png" alt="Réponse 200 avec jeton">
+  <div class="label">La tâche d'Alex → <span class="red">403</span></div>
+  <img class="shot" src="403-res.png" alt="Réponse 403">
+  <div class="tip ok">La sécurité de la démo #02 fonctionne à l'identique, cette fois servie par Docker et son propre MySQL.</div>
+  <div class="foot"><span><b>Francine Savi</b> · Task Manager</span><span>8 / 10</span></div>
+</section>
+
+<!-- 9. PIEGES + TESTS -->
+<section class="slide">
+  <div class="kicker">Ce que j'ai appris</div>
+  <h2>2 pièges que les tests n'ont pas vus</h2>
+  <div class="card bug">
+    <div class="t">🐛 MySQL avait l'air prêt… trop tôt</div>
+    <div class="d">Au 1er démarrage, MySQL lance un serveur temporaire puis redémarre. Le test de santé passait déjà, l'API se connectait pendant le redémarrage : <b>Connection refused</b>. Solution : tester via le réseau (127.0.0.1).</div>
+  </div>
+  <div class="card bug">
+    <div class="t">🐛 L'API utilisait SQLite au lieu de MySQL</div>
+    <div class="d">« php artisan serve » efface les variables d'environnement avant de lancer son serveur. Les tables allaient dans MySQL, l'API cherchait SQLite. Solution : un fichier .env dédié à Docker.</div>
+  </div>
+  <div class="label">Et les tests, lancés dans le conteneur</div>
+  <img class="shot" src="tests.png" alt="17 tests réussis dans Docker" style="width:72%">
+  <div class="foot"><span><b>Francine Savi</b> · Task Manager</span><span>9 / 10</span></div>
+</section>
+
+<!-- 10. CONCLUSION -->
+<section class="slide">
+  <div class="kicker">À retenir</div>
+  <h2>3 leçons de cette démo</h2>
+  <div class="lessons">
+    <div class="lesson"><div class="num">1</div><div><div class="t">Une image = une recette reproductible</div><div class="d">Même environnement partout : plus de « ça marche chez moi ».</div></div></div>
+    <div class="lesson"><div class="num">2</div><div><div class="t">« Démarré » ne veut pas dire « prêt »</div><div class="d">Un healthcheck bien écrit évite les erreurs au démarrage.</div></div></div>
+    <div class="lesson"><div class="num">3</div><div><div class="t">Toujours tester en conditions réelles</div><div class="d">Pour la 2ᵉ démo d'affilée, un vrai essai a révélé des bugs invisibles aux tests.</div></div></div>
+  </div>
+  <div class="spacer"></div>
+  <div class="card cta">
+    <div>🔗 <b>Le code complet est sur GitHub</b> (lien en commentaire)</div>
+    <div>💬 <b>Démo #04 :</b> mettre l'API <b>en ligne</b>, ou ajouter <b>filtres et pagination</b> ? <span style="color:var(--muted)">Vote en commentaire !</span></div>
+    <div>♻️ <b>Partage</b> si ça peut aider quelqu'un qui apprend</div>
+  </div>
+  <div class="foot"><span><b>Francine Savi</b> · Task Manager</span><span>10 / 10</span></div>
+</section>
+
+<script>
+  // Aperçu d'une seule diapositive : carrousel.html#3
+  var n = parseInt(location.hash.slice(1), 10);
+  if (n) document.querySelectorAll('.slide').forEach(function (s, i) {
+    if (i !== n - 1) s.style.display = 'none';
+  });
+</script>
+</body>
+</html>
