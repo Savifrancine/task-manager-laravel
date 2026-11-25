@@ -1,0 +1,52 @@
+# ─────────────────────────────────────────────────────────────────
+# docker-compose.yml — le "chef d'orchestre".
+#
+# Il décrit les 2 conteneurs du projet et les lance ensemble :
+#   app : l'API Laravel (construite avec notre Dockerfile)
+#   db  : la base MySQL (image officielle, rien à installer)
+#
+# Démarrer :  docker compose up -d --build
+# Arrêter  :  docker compose down
+# ─────────────────────────────────────────────────────────────────
+
+services:
+
+  app:
+    build: .                     # construit l'image à partir du Dockerfile
+    ports:
+      - "8080:8000"              # Windows:8080  →  conteneur:8000
+                                 # (8080 pour ne pas gêner "php artisan serve" sur 8000)
+    # La configuration de l'API (connexion à "db", etc.) est dans
+    # docker/.env.docker : voir ce fichier pour comprendre pourquoi.
+    depends_on:
+      db:
+        condition: service_healthy   # attend que MySQL soit vraiment prêt
+
+  db:
+    image: mysql:8.4
+    environment:
+      # Identifiants de DÉMONSTRATION uniquement, jamais en production
+      MYSQL_DATABASE: task_manager
+      MYSQL_USER: laravel
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3307:3306"              # 3307 côté Windows : le MySQL de XAMPP garde le 3306
+    volumes:
+      - db-data:/var/lib/mysql   # les données survivent à l'arrêt du conteneur
+    # "MySQL répond-il ?" vérifié toutes les 5 s.
+    # Piège : au 1er démarrage, MySQL lance d'abord un serveur TEMPORAIRE
+    # (sans réseau) pour créer la base, puis redémarre. Avec "-h localhost",
+    # ce serveur temporaire répondait déjà et l'API se connectait trop tôt
+    # ("Connection refused"). Avec 127.0.0.1, on passe par le réseau :
+    # seul le vrai serveur répond.
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+# Volume nommé : un espace disque géré par Docker, séparé du conteneur.
+# "docker compose down" le conserve ; "docker compose down -v" l'efface.
+volumes:
+  db-data:

@@ -1,0 +1,18 @@
+# Fichiers à NE PAS copier dans l'image Docker
+# (comme .gitignore, mais pour "COPY . ." du Dockerfile)
+
+# Les dépendances sont réinstallées dans l'image par Composer
+vendor
+node_modules
+
+# Secrets et configuration locale : jamais dans une image
+.env
+
+# Inutile pour faire tourner l'API (et lourd)
+.git
+.github
+captures
+postman
+database/database.sqlite
+storage/logs/*.log
+bootstrap/cache/*.php

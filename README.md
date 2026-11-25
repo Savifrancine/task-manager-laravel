@@ -8,6 +8,52 @@
 |---|---|---|
 | **#01** | API CRUD | Migrations, Eloquent, contrôleur, routes, validation, codes HTTP, tests |
 | **#02** | Authentification | Laravel Sanctum, jetons, relations, Policies, 401 vs 403 |
+| **#03** | Docker | Image, conteneur, Dockerfile, docker-compose, volumes, ports |
+
+## Démarrage rapide avec Docker (démo #03)
+
+Seul prérequis : [Docker Desktop](https://www.docker.com/products/docker-desktop/). Pas besoin d'installer PHP, Composer ni MySQL.
+
+```bash
+git clone https://github.com/Savifrancine/task-manager-laravel.git task-manager
+cd task-manager
+docker compose up -d --build                     # construit et lance l'API + MySQL
+docker compose exec app php artisan db:seed      # ajoute les comptes de démo (une seule fois)
+```
+
+L'API répond sur **http://127.0.0.1:8080/api**. Dans Postman, changer la variable `base_url` en `http://127.0.0.1:8080/api`.
+
+| Commande | Effet |
+|---|---|
+| `docker compose ps` | Voir les conteneurs qui tournent |
+| `docker compose logs app` | Lire le journal de l'API |
+| `docker compose exec app php artisan test` | Lancer les tests **dans** le conteneur |
+| `docker compose down` | Arrêter (les données sont conservées) |
+| `docker compose down -v` | Arrêter **et effacer** la base |
+
+**Comment c'est organisé :**
+
+```
+Windows                     Docker
+───────                     ──────────────────────────────────────
+localhost:8080  ──────────▶ conteneur "app"  (PHP 8.4 + Laravel, port 8000)
+                                   │  DB_HOST=db
+                                   ▼
+localhost:3307  ──────────▶ conteneur "db"   (MySQL 8.4, port 3306)
+                                   │
+                                   ▼
+                            volume "db-data" (les données survivent aux arrêts)
+```
+
+Les ports 8080 et 3307 sont choisis pour **ne pas entrer en conflit** avec `php artisan serve` (8000) et le MySQL de XAMPP (3306) : les deux installations peuvent tourner en même temps.
+
+| Fichier | Rôle |
+|---|---|
+| [`Dockerfile`](Dockerfile) | La recette de l'image de l'API |
+| [`docker-compose.yml`](docker-compose.yml) | Lance l'API et MySQL ensemble |
+| [`docker/entrypoint.sh`](docker/entrypoint.sh) | Exécuté au démarrage : `.env`, clé, migrations, serveur |
+| [`docker/.env.docker`](docker/.env.docker) | Configuration de l'API dans Docker |
+| [`.dockerignore`](.dockerignore) | Ce qui n'entre pas dans l'image (`.env`, `vendor`…) |
 
 ## Le principe de l'authentification (démo #02)
 
@@ -28,7 +74,8 @@
 |---|---|
 | PHP 8.4 / Laravel 13 | Backend |
 | Laravel Sanctum | Authentification par jetons |
-| MySQL (XAMPP) | Base de données |
+| MySQL (XAMPP ou Docker) | Base de données |
+| Docker + Docker Compose | Lancer tout le projet en une commande |
 | Eloquent ORM | Accès aux données et relations |
 | PHPUnit + GitHub Actions | Tests automatisés à chaque push |
 | Postman | Tests manuels de l'API |
@@ -65,7 +112,7 @@
 | `404` | La tâche n'existe pas | `Ressource introuvable.` |
 | `422` | Données invalides | `Le champ titre est obligatoire.` |
 
-## Installation
+## Installation sans Docker
 
 Prérequis : PHP 8.3+, Composer, MySQL.
 
@@ -141,4 +188,3 @@ php artisan test
 
 - Priorités et dates limites
 - Pagination et filtres (`?completed=true`)
-- Conteneurisation avec Docker
